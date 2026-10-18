@@ -1,0 +1,7 @@
+[favicons]
+cfg_schema = 1   # config schema version, don't change
+
+[favicons.cache]
+db_url = "/var/cache/searxng/faviconcache.db"   # ~/.cache/searxng/favicons on the host
+LIMIT_TOTAL_BYTES = 104857600                   # 100 MB, enforced at each maintenance run
+MAINTENANCE_PERIOD = 600                        # run maintenance every 10 minutes

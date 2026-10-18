@@ -1,0 +1,12 @@
+[Unit]
+Description=Open WebUI pod
+Requires=search-pod.service
+After=search-pod.service
+
+[Pod]
+PodName=owui
+# Forward the pod's loopback ports to the host's loopback:
+#   10000 = llama.cpp on the host, 8888 = cached SearXNG, 3128 = Squid,
+#   plus any ports added with install.sh --forward-port (filled in at install).
+Network=pasta:-T,10000,-T,8888,-T,3128@EXTRA_FORWARDS@
+PublishPort=127.0.0.1:3000:8080

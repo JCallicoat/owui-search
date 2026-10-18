@@ -1,0 +1,9 @@
+[Unit]
+Description=Search pod (SearXNG, nginx result cache, Squid fetch cache)
+
+[Pod]
+PodName=search
+Network=pasta
+# nginx (cached SearXNG) and Squid, on host loopback only
+PublishPort=127.0.0.1:8888:8081
+PublishPort=127.0.0.1:3128:3128

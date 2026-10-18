@@ -1,0 +1,15 @@
+[Unit]
+Description=nginx result cache in front of SearXNG
+Wants=searxng.service
+After=searxng.service
+
+[Container]
+ContainerName=searxng-proxy
+Image=docker.io/library/nginx:alpine
+Pod=search.pod
+Volume=@CONFIG_HOME@/searxng/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro,Z
+Volume=@CACHE_HOME@/searxng/search:/var/cache/nginx/searxng:Z
+
+[Service]
+Restart=on-failure
+TimeoutStartSec=300

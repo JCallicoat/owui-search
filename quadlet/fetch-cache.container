@@ -1,0 +1,17 @@
+[Unit]
+Description=Squid caching proxy for Open WebUI page fetches
+
+[Container]
+ContainerName=fetch-cache
+# Built locally by install.sh from ~/.config/searxng/squid/Containerfile
+Image=localhost/squid-bump:latest
+Pull=never
+Pod=search.pod
+Volume=@CONFIG_HOME@/searxng/squid/squid.conf:/etc/squid/squid.conf:ro,Z
+Volume=@CONFIG_HOME@/searxng/squid/ca.pem:/etc/squid/ca/ca.pem:ro,Z
+Volume=@CONFIG_HOME@/searxng/squid/ca.key:/etc/squid/ca/ca.key:ro,Z
+Volume=@CACHE_HOME@/searxng/fetch:/var/spool/squid:Z
+
+[Service]
+Restart=on-failure
+TimeoutStartSec=300

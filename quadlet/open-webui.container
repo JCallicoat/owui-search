@@ -1,0 +1,51 @@
+[Unit]
+Description=Open WebUI
+# Wants (not Requires): Open WebUI keeps running if llama-server is
+# restarted or stopped; starting Open WebUI still starts all of these.
+Wants=llama-server.service searxng-proxy.service fetch-cache.service
+After=llama-server.service searxng-proxy.service fetch-cache.service
+
+[Container]
+ContainerName=open-webui
+Image=ghcr.io/open-webui/open-webui:cuda
+Pod=owui.pod
+# Same named volume as before, so existing chats and settings are kept.
+Volume=open-webui:/app/backend/data
+# System CA roots plus the local Squid CA, so fetches through Squid verify.
+Volume=@CONFIG_HOME@/searxng/squid/owui-bundle.pem:/etc/ssl/owui-bundle.pem:ro,Z
+# Equivalent of --gpus all (NVIDIA CDI device).
+AddDevice=nvidia.com/gpu=all
+
+Environment=SCARF_NO_ANALYTICS=true
+Environment=DO_NOT_TRACK=true
+Environment=ANONYMIZED_TELEMETRY=false
+Environment=ENV=prod
+# Login required (WEBUI_AUTH defaults to True). Accounts from no-auth mode
+# keep working: sign in as admin@localhost / admin and change the password.
+Environment=ENABLE_SIGNUP=False
+# Only the UI's own origins may call the API from a browser (default is *).
+Environment="CORS_ALLOW_ORIGIN=http://127.0.0.1:3000;http://localhost:3000"
+# WEBUI_SECRET_KEY is kept out of this file.
+EnvironmentFile=@CONFIG_HOME@/open-webui/open-webui.env
+
+# Route outbound HTTP(S) through Squid; keep local services direct.
+Environment=HTTP_PROXY=http://127.0.0.1:3128
+Environment=HTTPS_PROXY=http://127.0.0.1:3128
+Environment=NO_PROXY=127.0.0.1,localhost,::1
+Environment=http_proxy=http://127.0.0.1:3128
+Environment=https_proxy=http://127.0.0.1:3128
+Environment=no_proxy=127.0.0.1,localhost,::1
+Environment=SSL_CERT_FILE=/etc/ssl/owui-bundle.pem
+Environment=REQUESTS_CA_BUNDLE=/etc/ssl/owui-bundle.pem
+
+# Open WebUI's page loader blocks connections to non-public addresses, which
+# includes Squid on 127.0.0.1, so page fetches fail without this. Squid's
+# private_dst rule refuses LAN/private targets instead. Loopback URLs
+# (127.0.0.1, localhost) bypass Squid via NO_PROXY and are not blocked, so an
+# injected URL could still reach the services inside this pod.
+Environment=ENABLE_LOCAL_WEB_FETCH=True
+
+[Service]
+Restart=on-failure
+# First start may pull a large image.
+TimeoutStartSec=900

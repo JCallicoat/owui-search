@@ -1,0 +1,19 @@
+[Unit]
+Description=SearXNG metasearch
+
+[Container]
+ContainerName=searxng
+Image=docker.io/searxng/searxng:latest
+Pod=search.pod
+# Read-only, and FORCE_OWNERSHIP=false stops the image's entrypoint from
+# chown-ing the mounted config to its own user, which would leave the files
+# owned by a subordinate UID you can't edit or delete on the host.
+Volume=@CONFIG_HOME@/searxng/searxng:/etc/searxng:ro,Z
+Environment=FORCE_OWNERSHIP=false
+Volume=@CACHE_HOME@/searxng/favicons:/var/cache/searxng:Z
+# Engine key/value cache lives in /tmp; keep it in RAM with a hard cap.
+Tmpfs=/tmp:size=256m
+
+[Service]
+Restart=on-failure
+TimeoutStartSec=300
